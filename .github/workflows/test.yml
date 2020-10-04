@@ -22,6 +22,8 @@ jobs:
     - name: Setup Certificates
       run: |
         make install_mkcert
+        ls -la /etc/ssl/certs
+        ls -la /home/runner/.local/share/mkcert
 
     - name: Start Traefik
       run: |

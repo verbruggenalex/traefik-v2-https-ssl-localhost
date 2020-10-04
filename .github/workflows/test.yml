@@ -30,4 +30,4 @@ jobs:
 
     - name: Show output
       run: |
-        curl https://traefik.docker.localhost/dashboard/#/
+        curl -v https://traefik.docker.localhost/dashboard/#/

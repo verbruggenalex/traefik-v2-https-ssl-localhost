@@ -1,5 +1,6 @@
 install_mkcert:
-	curl -s https://api.github.com/repos/FiloSottile/mkcert/releases/latest \
+	sudo apt install libnss3-tools -y \
+	&& curl -s https://api.github.com/repos/FiloSottile/mkcert/releases/latest \
 	| grep "browser_download_url.*-linux-amd64" \
 	| cut -d : -f 2,3 \
 	| tr -d \" \

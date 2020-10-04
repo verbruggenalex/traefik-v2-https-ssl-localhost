@@ -1,0 +1,32 @@
+name: test-traefik
+
+on:
+  push:
+    branches: [ '*' ]
+    tags: [ '*' ]
+
+jobs:
+
+  run:
+
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      matrix:
+        operating-system: [ubuntu-latest]
+
+    name: Test Traefik
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup Certificates
+      run: |
+        make install_mkcert
+
+    - name: Start Traefik
+      run: |
+        docker-compose up -d
+
+    - name: Show output
+      run: |
+        curl https://traefik.docker.localhost/dashboard/#/

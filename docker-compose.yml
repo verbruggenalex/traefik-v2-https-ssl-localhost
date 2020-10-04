@@ -1,32 +1,45 @@
 version: '3'
 
 services:
-  reverse-proxy:
+  traefik:
     image: traefik:v2.3
-    container_name: traefik
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
     ports:
-      # Web
       - 80:80
       - 443:443
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      # Map the static conf into the container
       - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
-      # Map the dynamic conf into the container
       - ./traefik/config.yml:/etc/traefik/config.yml:ro
-      # Map the certificats into the container
       - ./certs:/etc/certs:ro
     networks:
       - proxy
     labels:
-      # Enable this container to be mapped by traefik
-      # For more information, see: https://docs.traefik.io/providers/docker/#exposedbydefault
       - "traefik.enable=true"
-      # Use "traefik" router configuration defined into the dynamic config file: ./traefik/config.yml
       - "traefik.http.routers.traefik=true"
+
+  # web:
+  #   image: verbral/php-theia:7.4
+  #   working_dir: ${PWD}
+  #   environment:
+  #     WAKATIME_API_KEY:
+  #     GIT_USER_NAME:
+  #     GIT_USER_EMAIL:
+  #   volumes:
+  #     - ${PWD}:${PWD}
+  #     - ~/.ssh:/home/docker/.ssh
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.traefik-ide.rule=Host(`traefik.docker.localhost`) && PathPrefix(`/ide`)"
+  #     - "traefik.http.routers.traefik-ide.service=traefik-ide"
+  #     - "traefik.http.routers.traefik-ide.middlewares=ide-stripprefix"
+  #     - "traefik.http.middlewares.ide-stripprefix.stripprefix.prefixes=/ide"
+  #     - "traefik.http.routers.traefik-ide.tls=true"
+  #     - "traefik.http.services.traefik-ide.loadbalancer.server.port=3000"
+  #   networks:
+  #     - proxy
 
 networks:
   proxy:

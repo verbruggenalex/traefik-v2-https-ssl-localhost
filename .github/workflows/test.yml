@@ -22,10 +22,6 @@ jobs:
     - name: Setup Certificates
       run: |
         make install_mkcert
-        ls -la /usr/share/ca-certificates
-        ls -la /etc/ssl/certs
-        ls -la /home/runner/.local/share/mkcert
-        sudo update-ca-certificates
 
     - name: Start Traefik
       run: |
@@ -34,4 +30,4 @@ jobs:
 
     - name: Show output
       run: |
-        curl -v https://traefik.docker.localhost/dashboard/#/
+        curl -v http://traefik.docker.localhost/dashboard/#/

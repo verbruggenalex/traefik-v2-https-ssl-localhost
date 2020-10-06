@@ -21,6 +21,7 @@ jobs:
 
     - name: Setup Certificates
       run: |
+        cp .env.dist .env
         make mkcert_setup
         make mkcert_install
         make docker_network_create

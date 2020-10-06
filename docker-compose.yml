@@ -1,15 +1,17 @@
-version: '3'
+version: '3.7'
 
 services:
   traefik:
-    image: traefik:v2.3
+    image: traefik:2.3
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "https://traefik.docker.localhost/dashboard/#/"]
+      test: ["CMD", "curl", "-f", "https://traefik.$TRAEFIK_DOMAIN/dashboard/#/"]
       interval: 2s
       timeout: 10s
       retries: 5
       start_period: 5s
+    environment:
+      TRAEFIK_DOMAIN:
     security_opt:
       - no-new-privileges:true
     ports:
@@ -23,30 +25,31 @@ services:
     networks:
       - proxy
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.traefik=true"
+      traefik.enable: true
+      traefik.http.routers.traefik: true
 
-  # web:
-  #   image: verbral/php-theia:7.4
-  #   working_dir: ${PWD}
-  #   environment:
-  #     WAKATIME_API_KEY:
-  #     GIT_USER_NAME:
-  #     GIT_USER_EMAIL:
-  #   volumes:
-  #     - ${PWD}:${PWD}
-  #     - ~/.ssh:/home/docker/.ssh
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.traefik-ide.rule=Host(`traefik.docker.localhost`) && PathPrefix(`/ide`)"
-  #     - "traefik.http.routers.traefik-ide.service=traefik-ide"
-  #     - "traefik.http.routers.traefik-ide.middlewares=ide-stripprefix"
-  #     - "traefik.http.middlewares.ide-stripprefix.stripprefix.prefixes=/ide"
-  #     - "traefik.http.routers.traefik-ide.tls=true"
-  #     - "traefik.http.services.traefik-ide.loadbalancer.server.port=3000"
-  #   networks:
-  #     - proxy
+  web:
+    image: verbral/php-theia:7.4
+    working_dir: /home/project
+    environment:
+      WAKATIME_API_KEY:
+      GIT_USER_NAME:
+      GIT_USER_EMAIL:
+    volumes:
+      - ${PWD}:/home/project
+      - ~/.ssh:/home/docker/.ssh
+    labels:
+      traefik.enable: true
+      traefik.http.routers.traefik-ide.rule: Host(`traefik.${TRAEFIK_DOMAIN}`) && PathPrefix(`/ide`)
+      traefik.http.routers.traefik-ide.service: traefik-ide
+      traefik.http.routers.traefik-ide.middlewares: ide-stripprefix
+      traefik.http.middlewares.ide-stripprefix.stripprefix.prefixes: /ide
+      traefik.http.routers.traefik-ide.tls: true
+      traefik.http.services.traefik-ide.loadbalancer.server.port: 3000
+    networks:
+      - proxy
 
 networks:
   proxy:
     external: true
+    name: ${TRAEFIK_NETWORK}

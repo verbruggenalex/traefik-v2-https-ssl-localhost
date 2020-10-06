@@ -1,3 +1,4 @@
 certs/*
+.env
 .idea
 .DS_Store

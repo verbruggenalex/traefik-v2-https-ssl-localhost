@@ -5,7 +5,7 @@ services:
     image: traefik:2.3
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "https://traefik.$TRAEFIK_DOMAIN/dashboard/#/"]
+      test: traefik healthcheck
       interval: 2s
       timeout: 10s
       retries: 5
@@ -28,13 +28,41 @@ services:
       traefik.enable: true
       traefik.http.routers.traefik: true
 
+  portainer:
+    image: portainer/portainer-ce
+    command: -H unix:///var/run/docker.sock
+    restart: always
+    ports:
+      - 9000
+      - 8000
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    labels:
+      traefik.enable: true
+      traefik.http.routers.portainer.rule: Host(`portainer.${TRAEFIK_DOMAIN}`)
+      traefik.http.routers.portainer.tls: true
+      traefik.http.routers.portainer.service: portainer
+      traefik.http.services.portainer.loadbalancer.server.port: 9000
+    networks:
+      - proxy
+
   web:
     image: verbral/php-theia:7.4
+    healthcheck:
+      test: wget -nv -t1 --spider 'http://localhost:3000' || exit 1
+      interval: 2s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
     working_dir: /home/project
     environment:
       WAKATIME_API_KEY:
       GIT_USER_NAME:
       GIT_USER_EMAIL:
+    ports:
+      - 80
+      - 3000
     volumes:
       - ${PWD}:/home/project
       - ~/.ssh:/home/docker/.ssh
@@ -53,3 +81,6 @@ networks:
   proxy:
     external: true
     name: ${TRAEFIK_NETWORK}
+
+volumes:
+  portainer_data:
